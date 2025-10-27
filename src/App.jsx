@@ -12,7 +12,6 @@ function LoginScreen({ onSuccess, onBack }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    // Demo only: accept any non-empty credentials
     if (email && password) {
       onSuccess();
     } else {
@@ -21,7 +20,7 @@ function LoginScreen({ onSuccess, onBack }) {
   };
 
   return (
-    <div className="relative min-h-screen bg-[url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1974&auto=format&fit=crop')] bg-cover bg-center">
+    <div className="relative min-h-screen bg-[url('https://images.unsplash.com/photo-1695740633675-d060b607f5c4?ixid=M3w3OTkxMTl8MHwxfHNlYXJjaHwxfHxjZXJhbWljJTIwcG90dGVyeSUyMGhhbmRtYWRlfGVufDB8MHx8fDE3NjE1MDAxMzd8MA&ixlib=rb-4.1.0&w=1600&auto=format&fit=crop&q=80')] bg-cover bg-center">
       <div className="absolute inset-0 bg-slate-950/80" />
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
         <div className="rounded-xl border border-emerald-500/10 bg-slate-950/70 p-8 shadow-inner shadow-emerald-500/5 backdrop-blur">
@@ -74,6 +73,100 @@ function LoginScreen({ onSuccess, onBack }) {
   );
 }
 
+const sampleData = [
+  {
+    license_plate_number: 'AS03H4404',
+    car_type: 'Light-duty Vehicle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115017',
+    speed: '33',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+  {
+    license_plate_number: 'AS01NC7179',
+    car_type: 'Light-duty Vehicle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115018',
+    speed: '9',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+  {
+    license_plate_number: 'AS05C7611',
+    car_type: 'Tricycle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115021',
+    speed: '10',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+  {
+    license_plate_number: 'AS01TC1626',
+    car_type: 'Light-duty Vehicle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115024',
+    speed: '12',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+  {
+    license_plate_number: 'AP0SLC000',
+    car_type: 'Oversize Vehicle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115030',
+    speed: '9',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+  {
+    license_plate_number: 'CG16GA1467',
+    car_type: 'Light-duty Vehicle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115036',
+    speed: '0',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+  {
+    license_plate_number: 'AS05R5972',
+    car_type: 'Light-duty Vehicle',
+    direction: 'Up',
+    channel_no: '2',
+    list_type: 'None',
+    capture_time: '20251002115039',
+    speed: '0',
+    lane_no: '1',
+    data_type: 'Normal Data',
+    plate_picture: 'Plate Picture',
+    picture: 'Picture1',
+  },
+];
+
 export default function App() {
   const [route, setRoute] = useState('home'); // 'home' | 'login' | 'app'
 
@@ -99,7 +192,7 @@ export default function App() {
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-6 pb-16">
-          <Dashboard onLogout={() => setRoute('home')} />
+          <Dashboard onLogout={() => setRoute('home')} data={sampleData} />
         </main>
       </div>
     );

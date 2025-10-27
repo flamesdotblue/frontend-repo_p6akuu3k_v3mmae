@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Home, Video, FileBarChart, Settings, LogOut } from 'lucide-react';
 
 const StatCard = ({ label, value, accent = 'text-lime-400' }) => (
@@ -8,19 +8,25 @@ const StatCard = ({ label, value, accent = 'text-lime-400' }) => (
   </div>
 );
 
-const sampleViolations = [
-  { plate: 'MH12 AB 1023', speed: 96, limit: 60, location: 'Pune Bypass', time: '09:22' },
-  { plate: 'DL3C XY 5541', speed: 112, limit: 80, location: 'NH48', time: '10:05' },
-  { plate: 'KA02 QW 8890', speed: 87, limit: 60, location: 'Electronic City', time: '10:14' },
-  { plate: 'GJ01 TR 2210', speed: 129, limit: 100, location: 'Ahmedabad Ring Rd', time: '10:20' },
-  { plate: 'TN10 LM 7719', speed: 78, limit: 60, location: 'OMR', time: '10:25' },
-];
+function useHourCounts(data) {
+  return useMemo(() => {
+    if (!data || data.length === 0) return { hours: Array.from({ length: 12 }, (_, i) => i + 8), counts: Array(12).fill(0) };
+    const nowHour = 23; // use 12 slots, demo purposes
+    const hours = Array.from({ length: 12 }, (_, i) => ((nowHour - 11 + i + 24) % 24));
+    const map = new Map(hours.map((h) => [h, 0]));
+    data.forEach((d) => {
+      const ts = String(d.capture_time || '');
+      const h = Number(ts.slice(8, 10));
+      if (map.has(h)) map.set(h, (map.get(h) || 0) + 1);
+    });
+    const counts = hours.map((h) => map.get(h) || 0);
+    return { hours, counts };
+  }, [data]);
+}
 
-const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 08 to 19
-const hourCounts = [3, 5, 6, 4, 8, 10, 7, 12, 9, 6, 4, 5];
-
-function BarChart() {
-  const max = Math.max(...hourCounts);
+function BarChart({ data }) {
+  const { hours, counts } = useHourCounts(data);
+  const max = Math.max(1, ...counts);
   return (
     <div className="rounded-lg border border-emerald-500/10 bg-slate-900/70 p-4 shadow-inner shadow-emerald-500/5">
       <div className="mb-4 flex items-end justify-between">
@@ -30,13 +36,13 @@ function BarChart() {
         </div>
       </div>
       <div className="mt-2 flex h-40 items-end gap-2">
-        {hourCounts.map((val, idx) => (
+        {counts.map((val, idx) => (
           <div key={idx} className="flex w-full flex-col items-center gap-1">
             <div
               className="w-full rounded-t-md bg-gradient-to-t from-emerald-500 to-lime-400"
               style={{ height: `${(val / max) * 100}%` }}
             />
-            <span className="text-[10px] text-slate-400">{hours[idx]}</span>
+            <span className="text-[10px] text-slate-400">{String(hours[idx]).padStart(2, '0')}</span>
           </div>
         ))}
       </div>
@@ -44,7 +50,14 @@ function BarChart() {
   );
 }
 
-function ViolationsTable() {
+function formatTime(ts) {
+  if (!ts || String(ts).length < 12) return '-';
+  const h = String(ts).slice(8, 10);
+  const m = String(ts).slice(10, 12);
+  return `${h}:${m}`;
+}
+
+function ViolationsTable({ data }) {
   return (
     <div className="rounded-lg border border-emerald-500/10 bg-slate-900/70 p-4 shadow-inner shadow-emerald-500/5">
       <h3 className="mb-3 text-sm font-semibold text-white">Latest Violations</h3>
@@ -55,20 +68,27 @@ function ViolationsTable() {
               <th className="px-3 py-2 text-left font-semibold">Plate</th>
               <th className="px-3 py-2 text-left font-semibold">Speed</th>
               <th className="px-3 py-2 text-left font-semibold">Limit</th>
-              <th className="px-3 py-2 text-left font-semibold">Location</th>
+              <th className="px-3 py-2 text-left font-semibold">Type</th>
+              <th className="px-3 py-2 text-left font-semibold">Direction</th>
               <th className="px-3 py-2 text-left font-semibold">Time</th>
             </tr>
           </thead>
           <tbody>
-            {sampleViolations.map((v, i) => (
-              <tr key={i} className="border-t border-slate-800 text-slate-200">
-                <td className="px-3 py-2">{v.plate}</td>
-                <td className="px-3 py-2 font-semibold text-lime-400">{v.speed} km/h</td>
-                <td className="px-3 py-2 text-slate-300">{v.limit} km/h</td>
-                <td className="px-3 py-2 text-slate-300">{v.location}</td>
-                <td className="px-3 py-2 text-slate-400">{v.time}</td>
-              </tr>
-            ))}
+            {(data || []).map((d, i) => {
+              const limit = 60; // demo limit
+              const spd = Number(d.speed || 0);
+              const over = spd > limit;
+              return (
+                <tr key={i} className="border-t border-slate-800 text-slate-200">
+                  <td className="px-3 py-2">{d.license_plate_number}</td>
+                  <td className={`px-3 py-2 font-semibold ${over ? 'text-amber-300' : 'text-slate-200'}`}>{spd} km/h</td>
+                  <td className="px-3 py-2 text-slate-300">{limit} km/h</td>
+                  <td className="px-3 py-2 text-slate-300">{d.car_type}</td>
+                  <td className="px-3 py-2 text-slate-300">{d.direction}</td>
+                  <td className="px-3 py-2 text-slate-400">{formatTime(d.capture_time)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -76,7 +96,10 @@ function ViolationsTable() {
   );
 }
 
-export default function Dashboard({ onLogout }) {
+export default function Dashboard({ onLogout, data }) {
+  const peak = useMemo(() => Math.max(0, ...((data || []).map((d) => Number(d.speed || 0)))) , [data]);
+  const total = data ? data.length : 0;
+
   return (
     <div className="grid min-h-[70vh] grid-cols-12 gap-6">
       {/* Sidebar */}
@@ -107,15 +130,15 @@ export default function Dashboard({ onLogout }) {
       {/* Main content */}
       <main className="col-span-12 space-y-6 sm:col-span-9 lg:col-span-10">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <StatCard label="Total Violations (Today)" value="312" />
-          <StatCard label="Peak Speed Recorded" value="129 km/h" />
+          <StatCard label="Total Detections (Recent)" value={String(total)} />
+          <StatCard label="Peak Speed Recorded" value={`${peak} km/h`} />
           <StatCard label="Active Cameras" value="58" />
           <StatCard label="Alerts Dispatched" value="94" />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           <div className="lg:col-span-3">
-            <BarChart />
+            <BarChart data={data} />
           </div>
           <div className="lg:col-span-2">
             <div className="rounded-lg border border-emerald-500/10 bg-slate-900/70 p-4 shadow-inner shadow-emerald-500/5">
@@ -135,7 +158,7 @@ export default function Dashboard({ onLogout }) {
           </div>
         </div>
 
-        <ViolationsTable />
+        <ViolationsTable data={data} />
       </main>
     </div>
   );

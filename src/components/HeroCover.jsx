@@ -6,7 +6,7 @@ export default function HeroCover({ onCTAClick }) {
     <section className="relative h-[70vh] w-full overflow-hidden bg-slate-950">
       <div className="absolute inset-0">
         <Spline
-          scene="https://prod.spline.design/NoYj4XN8s0IlixJM/scene.splinecode"
+          scene="https://prod.spline.design/m8wpIQzXWhEh9Yek/scene.splinecode"
           style={{ width: '100%', height: '100%' }}
         />
       </div>
