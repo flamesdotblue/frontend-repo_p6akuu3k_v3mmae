@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import HeroCover from './components/HeroCover';
 import Features from './components/Features';
 import ContactForm from './components/ContactForm';
@@ -73,106 +73,56 @@ function LoginScreen({ onSuccess, onBack }) {
   );
 }
 
-const sampleData = [
-  {
-    license_plate_number: 'AS03H4404',
-    car_type: 'Light-duty Vehicle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115017',
-    speed: '33',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-  {
-    license_plate_number: 'AS01NC7179',
-    car_type: 'Light-duty Vehicle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115018',
-    speed: '9',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-  {
-    license_plate_number: 'AS05C7611',
-    car_type: 'Tricycle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115021',
-    speed: '10',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-  {
-    license_plate_number: 'AS01TC1626',
-    car_type: 'Light-duty Vehicle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115024',
-    speed: '12',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-  {
-    license_plate_number: 'AP0SLC000',
-    car_type: 'Oversize Vehicle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115030',
-    speed: '9',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-  {
-    license_plate_number: 'CG16GA1467',
-    car_type: 'Light-duty Vehicle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115036',
-    speed: '0',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-  {
-    license_plate_number: 'AS05R5972',
-    car_type: 'Light-duty Vehicle',
-    direction: 'Up',
-    channel_no: '2',
-    list_type: 'None',
-    capture_time: '20251002115039',
-    speed: '0',
-    lane_no: '1',
-    data_type: 'Normal Data',
-    plate_picture: 'Plate Picture',
-    picture: 'Picture1',
-  },
-];
+function pad2(n){return String(n).padStart(2,'0');}
+function fmtStamp(d){
+  const y = d.getFullYear();
+  const m = pad2(d.getMonth()+1);
+  const da = pad2(d.getDate());
+  const h = pad2(d.getHours());
+  const mi = pad2(d.getMinutes());
+  const s = pad2(d.getSeconds());
+  return `${y}${m}${da}${h}${mi}${s}`;
+}
+
+function useDummyData() {
+  return useMemo(() => {
+    // Generate ~360 samples over past 72 hours
+    const types = ['Light-duty Vehicle','Oversize Vehicle','Tricycle'];
+    const dirs = ['Up','Down'];
+    const out = [];
+    const now = new Date();
+    for (let i = 0; i < 360; i++) {
+      const d = new Date(now.getTime() - Math.random() * 72 * 3600 * 1000);
+      const speedBase = 20 + Math.random() * 70; // 20..90
+      const rush = [7,8,9,17,18,19].includes(d.getHours()) ? 1.2 : 0.9;
+      const speed = Math.max(0, Math.round(speedBase * rush + (Math.random()*8-4)));
+      out.push({
+        license_plate_number: `CAN-${Math.floor(1000+Math.random()*9000)}`,
+        car_type: types[Math.floor(Math.random()*types.length)],
+        direction: dirs[Math.floor(Math.random()*dirs.length)],
+        channel_no: String(1 + Math.floor(Math.random()*4)),
+        list_type: 'None',
+        capture_time: fmtStamp(d),
+        speed: String(speed),
+        lane_no: String(1 + Math.floor(Math.random()*3)),
+        data_type: 'Normal Data',
+        plate_picture: 'Plate Picture',
+        picture: 'Picture1'
+      });
+    }
+    // Sort newest first
+    out.sort((a,b) => (a.capture_time > b.capture_time ? -1 : 1));
+    return out;
+  }, []);
+}
 
 export default function App() {
   const [route, setRoute] = useState('home'); // 'home' | 'login' | 'app'
+  const data = useDummyData();
 
   if (route === 'login') {
     return <LoginScreen onSuccess={() => setRoute('app')} onBack={() => setRoute('home')} />;
-  }
+    }
 
   if (route === 'app') {
     return (
@@ -192,7 +142,7 @@ export default function App() {
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-6 pb-16">
-          <Dashboard onLogout={() => setRoute('home')} data={sampleData} />
+          <Dashboard onLogout={() => setRoute('home')} data={data} />
         </main>
       </div>
     );
